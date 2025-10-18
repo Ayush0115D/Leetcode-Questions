@@ -1,0 +1,48 @@
+name: Update README Automatically
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate README content
+        run: |
+          echo "# LeetCode Questions" > README.md
+          echo "" >> README.md
+          echo "A collection of LeetCode questions to ace the coding interview!" >> README.md
+          echo "" >> README.md
+          echo "## LeetCode Topics" >> README.md
+          echo "" >> README.md
+
+          for dir in */ ; do
+            if [ -d "$dir" ]; then
+              dirname=$(echo "$dir" | sed 's:/$::')
+              echo "### $dirname" >> README.md
+              echo "" >> README.md
+              for file in "$dir"/*; do
+                if [ -f "$file" ]; then
+                  filename=$(basename "$file")
+                  filepath=$(echo "$file" | sed 's/ /%20/g')
+                  echo "- [${filename%.*}](./$filepath)" >> README.md
+                fi
+              done
+              echo "" >> README.md
+            fi
+          done
+
+      - name: Commit and push changes
+        run: |
+          git config user.name "LeetHub Auto"
+          git config user.email "actions@github.com"
+          git add README.md
+          git commit -m "Auto-update README" || echo "No changes to commit"
+          git push
